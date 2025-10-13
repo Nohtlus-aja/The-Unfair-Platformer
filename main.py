@@ -717,7 +717,7 @@ def main(window):
                 dead = True
                 death_cause = "spike" if spike_contact else ("fire" if fire_contact else ("fall" if fell_off else "hazard"))
                 dead_at_ms = pygame.time.get_ticks()
-                death_delay_ms = 1000 if death_cause == "spike" else 0
+                death_delay_ms = 1001 if death_cause == "spike" else 0
 
             draw(window, background, bg_image, player, objects, offset_x)
             if dead:
