@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+ <object name="trap" width="48" height="48">
+  <polygon points="0,0 48,0 48,48 0,48"/>
+ </object>
+</template>
