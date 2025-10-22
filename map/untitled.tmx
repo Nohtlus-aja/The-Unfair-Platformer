@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="80" height="16" tilewidth="48" tileheight="48" infinite="1" nextlayerid="4" nextobjectid="126">
+ <editorsettings>
+  <export target="Level1.tmx" format="tmx"/>
+ </editorsettings>
+ <tileset firstgid="1" name="Terrain" tilewidth="48" tileheight="48" tilecount="21" columns="7">
+  <image source="../assets/Terrain/Terrain.png" width="352" height="176"/>
+ </tileset>
+ <layer id="1" name="Tile Layer 1" width="80" height="16">
+  <data encoding="csv">
+   <chunk x="16" y="0" width="16" height="16">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,3,3,3,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,
+0,0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</chunk>
+   <chunk x="32" y="0" width="16" height="16">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+3,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,
+0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0,
+3,0,0,0,0,0,0,3,3,3,3,1,1,1,3,3,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</chunk>
+   <chunk x="48" y="0" width="16" height="16">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,
+0,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,
+3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,
+3,3,3,3,0,0,0,0,0,0,3,3,3,3,3,3,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</chunk>
+   <chunk x="64" y="0" width="16" height="16">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+3,3,3,0,0,0,0,3,1,1,1,1,1,1,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</chunk>
+  </data>
+ </layer>
+ <objectgroup id="3" name="spike">
+  <object id="58" name="spike" x="1920.13" y="600" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="66" name="spike" x="1392.13" y="408" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="56" name="spike" x="2112.13" y="24" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="76" name="spike" x="2352.13" y="552" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="105" name="spike" x="3072.13" y="648" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="106" name="spike" x="3024.13" y="648" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="77" name="spike" x="2400.13" y="504" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="48" name="spike" x="1296.13" y="480" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+    <property name="orientation" value="down"/>
+   </properties>
+  </object>
+  <object id="60" name="spike" x="1392.13" y="480" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+    <property name="orientation" value="down"/>
+   </properties>
+  </object>
+  <object id="63" name="spike" x="1440.13" y="576" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+    <property name="orientation" value="down"/>
+   </properties>
+  </object>
+  <object id="64" name="spike" x="1488.13" y="576" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+    <property name="orientation" value="down"/>
+   </properties>
+  </object>
+  <object id="65" name="spike" x="1536.13" y="576" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+    <property name="orientation" value="down"/>
+   </properties>
+  </object>
+  <object id="61" name="spike" x="1344.13" y="480" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+    <property name="orientation" value="down"/>
+   </properties>
+  </object>
+  <object id="59" name="spike" x="2160.13" y="0" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+    <property name="orientation" value="down"/>
+   </properties>
+  </object>
+  <object id="75" name="spike" x="2160.13" y="0" width="48" height="24">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+    <property name="orientation" value="down"/>
+   </properties>
+  </object>
+  <object id="55" name="spike" x="1968.13" y="0" width="48" height="48">
+   <properties>
+    <property name="hidden" type="bool" value="true"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup id="2" name="Objects">
+  <object id="25" name="trap" x="1584" y="672" width="48" height="48"/>
+  <object id="72" name="box2" x="816" y="624" width="48" height="48"/>
+  <object id="73" name="box2" x="1920" y="0" width="48" height="48"/>
+  <object id="92" name="box2" x="3120" y="624" width="48" height="48"/>
+  <object id="93" name="box2" x="3264" y="624" width="48" height="48"/>
+  <object id="74" name="checkpoint" x="2064" y="480.042" width="144" height="191.958"/>
+  <object id="104" name="end" x="3504" y="480.042" width="144" height="191.958"/>
+  <object id="40" name="trap" x="768" y="672" width="48" height="48"/>
+  <object id="62" name="trap" x="768" y="624" width="48" height="48"/>
+  <object id="28" name="trap" x="1632" y="672" width="48" height="48"/>
+  <object id="29" name="trap" x="1680" y="672" width="48" height="48"/>
+  <object id="54" name="trap" x="2064" y="0" width="48" height="48"/>
+  <object id="79" name="trap" x="2640" y="672" width="48" height="48"/>
+  <object id="97" name="trap" x="2688" y="672" width="48" height="48"/>
+  <object id="98" name="trap" x="2736" y="672" width="48" height="48"/>
+  <object id="99" name="trap" x="3312" y="672" width="48" height="48"/>
+  <object id="102" name="trap" x="3360" y="672" width="48" height="48"/>
+  <object id="100" name="trap" x="3264" y="672" width="48" height="48"/>
+  <object id="101" name="trap" x="3216" y="672" width="48" height="48"/>
+  <object id="80" name="trap" x="2592" y="672" width="48" height="48"/>
+  <object id="81" name="trap" x="2544" y="672" width="48" height="48"/>
+  <object id="82" name="trap" x="2496" y="672" width="48" height="48"/>
+  <object id="83" name="trap" x="2496" y="528" width="48" height="48"/>
+  <object id="84" name="trap" x="2496" y="576" width="48" height="48"/>
+  <object id="85" name="trap" x="2496" y="624" width="48" height="48"/>
+  <object id="86" name="trap" x="2544" y="624" width="48" height="48"/>
+  <object id="87" name="trap" x="2544" y="576" width="48" height="48"/>
+  <object id="90" name="trap" x="2592" y="624" width="48" height="48"/>
+  <object id="31" name="trap" x="1728" y="672" width="48" height="48"/>
+  <object id="103" name="trap" x="1776" y="672" width="48" height="48"/>
+  <object id="30" name="appear" x="1632.02" y="336" width="48" height="48"/>
+  <object id="53" name="appear" x="2016.02" y="0" width="48" height="48"/>
+  <object id="32" name="appear" x="1680.02" y="336" width="48" height="48"/>
+ </objectgroup>
+</map>

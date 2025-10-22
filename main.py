@@ -76,6 +76,8 @@ class Player(pygame.sprite.Sprite):
         self.jump_count = 0
         self.hit = False
         self.hit_count = 0
+        # Last checkpoint respawn position
+        self.respawn_pos = (x, y)
 
     def jump(self):
         self.y_vel = -self.GRAVITY * 8
@@ -157,6 +159,17 @@ class Player(pygame.sprite.Sprite):
     def kill_player(self):
         self.make_hit()
 
+    def respawn(self):
+        # Restore position and clear transient states
+        self.rect.topleft = self.respawn_pos
+        self.x_vel = 0
+        self.y_vel = 0
+        self.hit = False
+        self.hit_count = 0
+        self.fall_count = 0
+        self.jump_count = 0
+        self.animation_count = 0
+
 
 class Object(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height, name=None):
@@ -235,6 +248,15 @@ class DisappearingBlock(Object):
             self.is_solid = True
             self.mask = pygame.mask.from_surface(self.image)
 
+    def reset(self):
+        # Back to initial: visible and solid
+        self.triggered = False
+        self.trigger_time_ms = None
+        self.image = self.base_image.copy()
+        self.image.set_alpha(255)
+        self.is_solid = True
+        self.mask = pygame.mask.from_surface(self.image)
+
 
 class AppearingBlock(Object):
     def __init__(self, x, y, width, height, tile_surface=None):
@@ -261,6 +283,13 @@ class AppearingBlock(Object):
         self.image.set_alpha(255)
         self.is_solid = True
         self.mask = pygame.mask.from_surface(self.image)
+
+    def reset(self):
+        # Back to initial: invisible and non-solid
+        self.triggered = False
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.is_solid = False
 
 class Fire(Object):
     ANIMATION_DELAY = 3
@@ -363,6 +392,183 @@ class HiddenSpike(Object):
         if t >= 1:
             self.is_solid = False  # spikes remain non-solid but hazardous
             self.active_hazard = True
+
+    def reset(self):
+        # Back to hidden, non-solid, non-hazard
+        self.triggered = False
+        self.active_hazard = False
+        self.start_ms = 0
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.is_solid = False
+        
+
+class Checkpoint(Object):
+    ANIMATION_DELAY = 4
+
+    def __init__(self, x, y, width=64, height=64):
+        super().__init__(x, y, width, height, name="checkpoint")
+        self.is_solid = False
+        # Load images
+        base_dir = join("assets", "Items", "Checkpoints", "Checkpoint")
+        # No flag static
+        no_flag_img = pygame.image.load(join(base_dir, "Checkpoint (No Flag).png")).convert_alpha()
+        self.no_flag = pygame.transform.smoothscale(no_flag_img, (width, height))
+        # Flag out sheet (animation)
+        flag_out_sheet = pygame.image.load(join(base_dir, "Checkpoint (Flag Out) (64x64).png")).convert_alpha()
+        self.flag_out_frames = self._slice_and_scale(flag_out_sheet, 64, 64, width, height)
+        # Flag idle sheet (loop animation)
+        flag_idle_sheet = pygame.image.load(join(base_dir, "Checkpoint (Flag Idle)(64x64).png")).convert_alpha()
+        self.flag_idle_frames = self._slice_and_scale(flag_idle_sheet, 64, 64, width, height)
+
+        self.state = "no_flag"  # no_flag -> flag_out -> idle
+        self.animation_count = 0
+        self.image = self.no_flag
+        self.mask = pygame.mask.from_surface(self.image)
+        self.activated = False
+
+    def _slice_and_scale(self, sheet, frame_w, frame_h, out_w, out_h):
+        frames = []
+        num = max(1, sheet.get_width() // frame_w)
+        for i in range(num):
+            surface = pygame.Surface((frame_w, frame_h), pygame.SRCALPHA)
+            rect = pygame.Rect(i * frame_w, 0, frame_w, frame_h)
+            surface.blit(sheet, (0, 0), rect)
+            frames.append(pygame.transform.smoothscale(surface, (out_w, out_h)))
+        return frames
+
+    def trigger(self):
+        if self.activated:
+            return
+        self.activated = True
+        self.state = "flag_out"
+        self.animation_count = 0
+
+    def loop(self):
+        if self.state == "no_flag":
+            # idle without flag
+            self.image = self.no_flag
+        elif self.state == "flag_out":
+            sprites = self.flag_out_frames
+            sprite_index = (self.animation_count // self.ANIMATION_DELAY)
+            if sprite_index >= len(sprites):
+                # transition to idle flag loop
+                self.state = "idle"
+                self.animation_count = 0
+                self.image = self.flag_idle_frames[0]
+            else:
+                self.image = sprites[sprite_index]
+                self.animation_count += 1
+        elif self.state == "idle":
+            sprites = self.flag_idle_frames
+            sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+            self.image = sprites[sprite_index]
+            self.animation_count += 1
+
+        # Update collision mask each frame in case of change
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def reset(self):
+        # Back to initial: no flag and not activated
+        self.state = "no_flag"
+        self.animation_count = 0
+        self.image = self.no_flag
+        self.mask = pygame.mask.from_surface(self.image)
+        self.activated = False
+
+
+class End(Object):
+    def __init__(self, x, y, width=64, height=64):
+        super().__init__(x, y, width, height, name="end")
+        self.is_solid = False
+        base_dir = join("assets", "Items", "Checkpoints", "End")
+        idle_img = pygame.image.load(join(base_dir, "End (Idle).png")).convert_alpha()
+        pressed_img = pygame.image.load(join(base_dir, "End (Pressed) (64x64).png")).convert_alpha()
+        self.idle = pygame.transform.smoothscale(idle_img, (width, height))
+        self.pressed = pygame.transform.smoothscale(pressed_img, (width, height))
+        self.activated = False
+        self.activated_at_ms = 0
+        self.image = self.idle
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def trigger(self):
+        if self.activated:
+            return
+        self.activated = True
+        self.activated_at_ms = pygame.time.get_ticks()
+        self.image = self.pressed
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def reset(self):
+        self.activated = False
+        self.activated_at_ms = 0
+        self.image = self.idle
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def loop(self):
+        # Simple visual feedback during the first 1.5s after activation: blink idle/pressed
+        if not self.activated:
+            return
+        elapsed = pygame.time.get_ticks() - (self.activated_at_ms or 0)
+        if elapsed < 1500:
+            phase = (elapsed // 200) % 2
+            self.image = self.pressed if phase == 0 else self.idle
+            self.mask = pygame.mask.from_surface(self.image)
+
+class Box(Object):
+    BROKEN_HIDE_DELAY_MS = 250
+
+    def __init__(self, x, y, width, height, variant="Box2"):
+        # Solid, decorative box (crate) that acts as a collidable block
+        super().__init__(x, y, width, height, name="box")
+        # Load the Box2 idle image and scale to requested size
+        box_path = join("assets", "Items", "Boxes", str(variant), "Idle.png")
+        base_img = pygame.image.load(box_path).convert_alpha()
+        scaled_img = pygame.transform.smoothscale(base_img, (width, height))
+        self.image = pygame.Surface((width, height), pygame.SRCALPHA)
+        self.image.blit(scaled_img, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+        self.is_solid = True
+        self.variant = variant
+        self.broken = False
+        self.broken_at_ms = 0
+
+    def break_box(self):
+        if self.broken:
+            return
+        self.broken = True
+        self.is_solid = False
+        # Show break sprite briefly, then hide
+        break_path = join("assets", "Items", "Boxes", str(self.variant), "Break.png")
+        try:
+            break_img = pygame.image.load(break_path).convert_alpha()
+            break_scaled = pygame.transform.smoothscale(break_img, (self.width, self.height))
+            self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+            self.image.blit(break_scaled, (0, 0))
+        except Exception:
+            # Fallback to instantly invisible if asset missing
+            self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.broken_at_ms = pygame.time.get_ticks()
+
+    def loop(self):
+        if self.broken:
+            if pygame.time.get_ticks() - self.broken_at_ms >= self.BROKEN_HIDE_DELAY_MS:
+                # Hide after delay
+                self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+                self.mask = pygame.mask.from_surface(self.image)
+
+    def reset(self):
+        # Restore unbroken box
+        box_path = join("assets", "Items", "Boxes", str(self.variant), "Idle.png")
+        base_img = pygame.image.load(box_path).convert_alpha()
+        scaled_img = pygame.transform.smoothscale(base_img, (self.width, self.height))
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.image.blit(scaled_img, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+        self.is_solid = True
+        self.broken = False
+        self.broken_at_ms = 0
 def get_background(name):
     image = pygame.image.load(join("assets", "Background", name))
     _, _, width, height = image.get_rect()
@@ -391,7 +597,22 @@ def load_tmx_level(tmx_path, block_size):
     if not os.path.exists(tmx_path):
         return None, None
 
-    tmx = load_tmx(tmx_path)
+    try:
+        tmx = load_tmx(tmx_path)
+    except Exception as e:
+        print("TMX load failed:", e)
+        return None, None
+
+    # Diagnostics to help verify map type and loading behavior
+    try:
+        is_infinite = bool(getattr(tmx, "infinite", False))
+        map_w = getattr(tmx, "width", None)
+        map_h = getattr(tmx, "height", None)
+        tile_w_dbg = getattr(tmx, "tilewidth", None)
+        tile_h_dbg = getattr(tmx, "tileheight", None)
+        print(f"Loaded TMX: {tmx_path} | infinite={is_infinite} | size={map_w}x{map_h} | tile={tile_w_dbg}x{tile_h_dbg}")
+    except Exception:
+        pass
 
     objects = []
     player_spawn = None
@@ -522,11 +743,36 @@ def load_tmx_level(tmx_path, block_size):
 
             ap = AppearingBlock(ax, ay, aw, ah, appear_img)
             objects.append(ap)
+        elif (obj_type == "checkpoint") or (obj_name == "checkpoint"):
+            cx = int(obj.x)
+            ch = int(getattr(obj, "height", 64) or 64)
+            cw = int(getattr(obj, "width", 64) or 64)
+            has_gid_c = bool(getattr(obj, "gid", None))
+            cy = int(obj.y - ch) if has_gid_c else int(obj.y)
+            checkpoint = Checkpoint(cx, cy, cw, ch)
+            objects.append(checkpoint)
+        elif (obj_type == "box2") or (obj_name == "box2"):
+            bx = int(obj.x)
+            bh = int(getattr(obj, "height", tile_h) or tile_h)
+            bw = int(getattr(obj, "width", tile_w) or tile_w)
+            has_gid_b = bool(getattr(obj, "gid", None))
+            by = int(obj.y - bh) if has_gid_b else int(obj.y)
+            # Always use Box2 asset regardless of gid
+            box = Box(bx, by, bw, bh, variant="Box2")
+            objects.append(box)
+        elif (obj_type == "end") or (obj_name == "end"):
+            ex = int(obj.x)
+            eh = int(getattr(obj, "height", 64) or 64)
+            ew = int(getattr(obj, "width", 64) or 64)
+            has_gid_e = bool(getattr(obj, "gid", None))
+            ey = int(obj.y - eh) if has_gid_e else int(obj.y)
+            end_obj = End(ex, ey, ew, eh)
+            objects.append(end_obj)
 
     return objects, player_spawn
 
 
-def draw(window, background, bg_image, player, objects, offset_x):
+def draw(window, background, bg_image, player, objects, offset_x, update_display=True, death_count=None):
     for tile in background:
         window.blit(bg_image, tile)
 
@@ -535,7 +781,14 @@ def draw(window, background, bg_image, player, objects, offset_x):
 
     player.draw(window, offset_x)
 
-    pygame.display.update()
+    # HUD: Death counter (top-left)
+    if death_count is not None:
+        hud_font = pygame.font.SysFont(None, 28)
+        hud_text = hud_font.render(f"Deaths: {death_count}", True, (255, 255, 255))
+        window.blit(hud_text, (12, 10))
+
+    if update_display:
+        pygame.display.update()
 
 
 def draw_restart_overlay(win, message="You Died - Press R to Restart"):
@@ -546,7 +799,24 @@ def draw_restart_overlay(win, message="You Died - Press R to Restart"):
     text = font.render(message, True, (255, 255, 255))
     rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
     win.blit(text, rect)
+def draw_level_complete_overlay(win, elapsed_ms, death_count):
+    overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 180))
+    win.blit(overlay, (0, 0))
+    title_font = pygame.font.SysFont(None, 56)
+    info_font = pygame.font.SysFont(None, 36)
+    title = title_font.render("Level Complete!", True, (255, 255, 0))
+    sec = max(0.0, elapsed_ms / 1000.0)
+    info1 = info_font.render(f"Time: {sec:.2f}s", True, (255, 255, 255))
+    info2 = info_font.render(f"Deaths: {death_count}", True, (255, 255, 255))
+    info3 = info_font.render("N: Next Level   R: Restart", True, (200, 200, 200))
+    cx, cy = WIDTH // 2, HEIGHT // 2
+    win.blit(title, title.get_rect(center=(cx, cy - 60)))
+    win.blit(info1, info1.get_rect(center=(cx, cy - 10)))
+    win.blit(info2, info2.get_rect(center=(cx, cy + 30)))
+    win.blit(info3, info3.get_rect(center=(cx, cy + 80)))
     pygame.display.update()
+
 
 
 def handle_vertical_collision(player, objects, dy):
@@ -565,6 +835,9 @@ def handle_vertical_collision(player, objects, dy):
             if dy > 0:
                 player.rect.bottom = obj.rect.top
                 player.landed()
+                # If we landed on a Box, break it and let player fall on next frame
+                if isinstance(obj, Box):
+                    obj.break_box()
             elif dy < 0:
                 player.rect.top = obj.rect.bottom
                 player.hit_head()
@@ -619,12 +892,20 @@ def handle_move(player, objects):
             if isinstance(obj, HiddenSpike):
                 obj.trigger()
             player.make_hit()
+        if obj and getattr(obj, "name", None) == "checkpoint":
+            if isinstance(obj, Checkpoint):
+                obj.trigger()
+                # Update player respawn to the center-top of checkpoint
+                player.respawn_pos = (obj.rect.x, obj.rect.y)
         if obj and getattr(obj, "name", None) == "trap":
             # Trigger disappearing traps when landed on
             if isinstance(obj, DisappearingBlock):
                 obj.trigger()
         if obj and getattr(obj, "name", None) == "appear":
             if isinstance(obj, AppearingBlock):
+                obj.trigger()
+        if obj and getattr(obj, "name", None) == "end":
+            if isinstance(obj, End):
                 obj.trigger()
 
     # Hazards that are non-solid (e.g., spikes) won't be in to_check; check them directly
@@ -634,18 +915,60 @@ def handle_move(player, objects):
                 if isinstance(obj, HiddenSpike):
                     obj.trigger()
                 player.make_hit()
+        if getattr(obj, "name", None) == "checkpoint":
+            # Checkpoints are non-solid, so they won't be in vertical/side collision lists
+            if pygame.sprite.collide_mask(player, obj) or pygame.sprite.collide_rect(player, obj):
+                try:
+                    obj.trigger()
+                    player.respawn_pos = (obj.rect.x, obj.rect.y)
+                except Exception:
+                    pass
+        if getattr(obj, "name", None) == "end":
+            if pygame.sprite.collide_mask(player, obj) or pygame.sprite.collide_rect(player, obj):
+                try:
+                    obj.trigger()
+                except Exception:
+                    pass
 
 
-def main(window):
+def _find_next_level(current_map):
+    # Try LevelN.tmx in the same directory, increment N
+    try:
+        base = os.path.basename(current_map)
+        dirn = os.path.dirname(current_map) or "."
+        name, ext = os.path.splitext(base)
+        # Accept names like Level1, Level01, level2, etc.
+        import re
+        m = re.search(r"(\d+)$", name)
+        if not m:
+            return None
+        n = int(m.group(1))
+        prefix = name[:m.start(1)]
+        width = len(m.group(1))
+        next_name = f"{prefix}{n+1:0{width}d}{ext}"
+        candidate = os.path.join(dirn, next_name)
+        return candidate if os.path.exists(candidate) else None
+    except Exception:
+        return None
+
+
+def main(window, map_path_override=None, death_count_seed=0):
     clock = pygame.time.Clock()
     background, bg_image = get_background("Blue.png")
 
     block_size = 96
 
-    # Try loading a TMX map if available (prefer test.tmx, then level1.tmx)
-    test_map = os.path.join("levels", "test.tmx")
-    level1_map = os.path.join("levels", "level1.tmx")
-    map_path = test_map if os.path.exists(test_map) else level1_map
+    # Try loading a TMX map if available. Prefer map/Level1.tmx unless override is given.
+    if map_path_override and os.path.exists(map_path_override):
+        map_path = map_path_override
+    else:
+        preferred_map = os.path.join("map", "Level1.tmx")
+        if os.path.exists(preferred_map):
+            map_path = preferred_map
+        else:
+            test_map = os.path.join("levels", "test.tmx")
+            level1_map = os.path.join("levels", "level1.tmx")
+            map_path = test_map if os.path.exists(test_map) else level1_map
     loaded_objects, player_spawn = load_tmx_level(map_path, block_size)
 
     if loaded_objects is not None:
@@ -669,6 +992,12 @@ def main(window):
     dead_at_ms = 0
     death_delay_ms = 0
     death_cause = None
+    death_count = int(death_count_seed or 0)
+    level_started_ms = pygame.time.get_ticks()
+    level_complete = False
+    level_completed_at_ms = 0
+    elapsed_at_complete_ms = 0
+    complete_overlay_delay_ms = 1500
     run = True
     while run:
         clock.tick(FPS)
@@ -680,12 +1009,36 @@ def main(window):
 
             if event.type == pygame.KEYDOWN:
                 if dead and event.key == pygame.K_r:
-                    # Reload level
-                    return main(window)
+                    # Respawn at last checkpoint rather than reload level
+                    dead = False
+                    player.respawn()
+                    # Reset dynamic objects to initial state
+                    for obj in objects:
+                        reset_fn = getattr(obj, "reset", None)
+                        if callable(reset_fn):
+                            reset_fn()
+                    # Recenter camera on player after respawn
+                    offset_x = max(0, player.rect.centerx - WIDTH // 2)
+                    # Clear any death timers
+                    dead_at_ms = 0
+                    death_delay_ms = 0
+                    death_cause = None
+                    continue
+                if level_complete:
+                    if event.key == pygame.K_r:
+                        # Restart same level with same death_count
+                        return main(window, map_path_override=map_path, death_count_seed=death_count)
+                    if event.key == pygame.K_n:
+                        next_map = _find_next_level(map_path)
+                        if next_map and os.path.exists(next_map):
+                            return main(window, map_path_override=next_map, death_count_seed=death_count)
+                        else:
+                            # If no next level, restart current
+                            return main(window, map_path_override=map_path, death_count_seed=death_count)
                 if (not dead) and event.key == pygame.K_SPACE and player.jump_count < 2:
                     player.jump()
 
-        if not dead:
+        if not dead and (not level_complete or (pygame.time.get_ticks() - level_completed_at_ms < complete_overlay_delay_ms)):
             player.loop(FPS)
             # Update per-object behavior (Fire, DisappearingBlock, etc.)
             for obj in objects:
@@ -715,33 +1068,56 @@ def main(window):
             hazard_hit = player.hit  # maintained from collision handlers
             if fell_off or hazard_hit:
                 dead = True
+                death_count += 1
                 death_cause = "spike" if spike_contact else ("fire" if fire_contact else ("fall" if fell_off else "hazard"))
                 dead_at_ms = pygame.time.get_ticks()
                 death_delay_ms = 1001 if death_cause == "spike" else 0
-
-            draw(window, background, bg_image, player, objects, offset_x)
-            if dead:
-                if pygame.time.get_ticks() - dead_at_ms >= death_delay_ms:
-                    draw_restart_overlay(window)
-        else:
-            # Dead state
-            elapsed_since_death = pygame.time.get_ticks() - dead_at_ms
-            if death_cause == "spike" and elapsed_since_death < death_delay_ms:
-                # Let hazards (e.g., hidden spikes) finish their reveal animation
+            # Check end condition
+            if not level_complete:
                 for obj in objects:
-                    if hasattr(obj, "loop") and obj is not player:
-                        obj.loop()
-                # Keep player frozen but show hit pose
-                player.x_vel = 0
-                player.y_vel = 0
-                player.make_hit()
-                player.update_sprite()
-                # Redraw scene without overlay yet
-                draw(window, background, bg_image, player, objects, offset_x)
-            else:
-                # Show restart overlay and wait for R
-                draw(window, background, bg_image, player, objects, offset_x)
-                draw_restart_overlay(window)
+                    if getattr(obj, "name", None) == "end" and isinstance(obj, End) and obj.activated:
+                        level_complete = True
+                        level_completed_at_ms = pygame.time.get_ticks()
+                        elapsed_at_complete_ms = level_completed_at_ms - level_started_ms
+                        break
+
+            draw(window, background, bg_image, player, objects, offset_x, death_count=death_count)
+        else:
+            if dead:
+                # Dead state - handle spike death delay
+                elapsed_since_death = pygame.time.get_ticks() - dead_at_ms
+                if death_cause == "spike" and elapsed_since_death < death_delay_ms:
+                    # Let hazards (e.g., hidden spikes) finish their reveal animation
+                    for obj in objects:
+                        if hasattr(obj, "loop") and obj is not player:
+                            obj.loop()
+                    # Keep player frozen but show hit pose
+                    player.x_vel = 0
+                    player.y_vel = 0
+                    player.make_hit()
+                    player.update_sprite()
+                    # Redraw scene without overlay yet
+                    draw(window, background, bg_image, player, objects, offset_x, death_count=death_count)
+                else:
+                    # Show restart overlay and wait for R
+                    draw(window, background, bg_image, player, objects, offset_x, update_display=False, death_count=death_count)
+                    draw_restart_overlay(window)
+                    pygame.display.update()
+            elif level_complete:
+                # Before overlay: allow normal update including player movement
+                if pygame.time.get_ticks() - level_completed_at_ms < complete_overlay_delay_ms:
+                    # Already updated above in the main branch; just draw
+                    pass
+                else:
+                    # After delay: lock player and show overlay
+                    player.x_vel = 0
+                    player.y_vel = 0
+                draw(window, background, bg_image, player, objects, offset_x, update_display=False, death_count=death_count)
+                now = pygame.time.get_ticks()
+                if now - level_completed_at_ms >= complete_overlay_delay_ms:
+                    draw_level_complete_overlay(window, elapsed_at_complete_ms, death_count)
+                else:
+                    pygame.display.update()
 
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
                 (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):

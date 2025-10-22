@@ -3,8 +3,9 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "",
+    "activeFile": "untitled.tmx",
     "expandedProjectPaths": [
+        "."
     ],
     "fileStates": {
         "": {
@@ -13,21 +14,55 @@
         "#Terrain": {
             "dynamicWrapping": true,
             "scaleInDock": 1
+        },
+        "Level1.tmx": {
+            "expandedObjectLayers": [
+                2
+            ],
+            "scale": 0.75,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 526,
+                "y": 392.66666666666674
+            }
+        },
+        "Level1.tmx#Terrain": {
+            "scaleInDock": 1
+        },
+        "untitled.tmx": {
+            "expandedObjectLayers": [
+                2
+            ],
+            "scale": 0.5,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 2093,
+                "y": 605
+            }
+        },
+        "untitled.tmx#Terrain": {
+            "scaleInDock": 1
         }
     },
-    "last.exportedFilePath": "D:/KULIAH/0--PERKULIAHAN--0/DOUBLE_DEGREE/SEMESTER_7/COMPREHENSIVE PROGRAM DEV/iseng/TheUnfairPlatformer/levels",
+    "last.exportedFilePath": "D:/KULIAH/0--PERKULIAHAN--0/DOUBLE_DEGREE/SEMESTER_7/COMPREHENSIVE PROGRAM DEV/iseng/TheUnfairPlatformer/map",
     "last.imagePath": "D:/KULIAH/0--PERKULIAHAN--0/DOUBLE_DEGREE/SEMESTER_7/COMPREHENSIVE PROGRAM DEV/iseng/TheUnfairPlatformer/assets/Terrain",
     "last.objectTemplatePath": "D:/KULIAH/0--PERKULIAHAN--0/DOUBLE_DEGREE/SEMESTER_7/COMPREHENSIVE PROGRAM DEV/iseng/TheUnfairPlatformer/map",
     "map.fixedSize": true,
     "map.lastUsedExportFilter": "All Files (*)",
+    "map.lastUsedFormat": "tmx",
     "map.tileHeight": 48,
     "map.tileWidth": 48,
     "openFiles": [
+        "untitled.tmx",
+        "Level1.tmx"
     ],
     "project": "map.tiled-project",
     "property.type": "string",
     "recentFiles": [
+        "Level1.tmx",
+        "untitled.tmx"
     ],
+    "resizeMap.removeObjects": true,
     "tileset.embedInMap": true,
     "tileset.margin": 0,
     "tileset.spacing": 0,
